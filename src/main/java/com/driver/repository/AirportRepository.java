@@ -7,6 +7,8 @@ import com.driver.model.Passenger;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 @Repository
@@ -80,10 +82,15 @@ public class AirportRepository {
             return "FAILURE";
         }
         List<Integer> passengerList = bookedPassengers.computeIfAbsent(flightId, k -> new ArrayList<>());
-        for(Integer passenger: passengerList){
-            if (passenger == passengerId) {
-                return "FAILURE";
+        try{
+            for(Integer passenger: passengerList){
+                if (passenger == passengerId) {
+                    return "FAILURE";
+                }
             }
+        }
+        catch(NullPointerException e){
+            Logger.getLogger(AirportRepository.class.getName()).log(Level.SEVERE, "An error occurred", e);
         }
 
         if (passengerList.size() >= flight.getMaxCapacity()) {
