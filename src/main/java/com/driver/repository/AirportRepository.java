@@ -7,6 +7,7 @@ import com.driver.model.Passenger;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Repository
 public class AirportRepository {
@@ -52,23 +53,19 @@ public class AirportRepository {
         return shortestDuration;
     }
     public int getNumberOfPeopleOn(Date date, String airportName){
-
-        int totalPassengers = 0;
         Airport airport = airportHashMap.get(airportName);
-        List<Flight>flights = airportFlightHashMap.getOrDefault(airport, new ArrayList<>());
-        for(Flight flight: flights){
-            //if flight date matches with the date that means all the passengers of that flight are present on that date
-            if(flight.getFlightDate().equals(date)){
-                totalPassengers+=flight.getMaxCapacity();
-            }
-        }
-        List<Flight>incomingFlights = incomingFlightHashMap.getOrDefault(airport, new ArrayList<>());
-        for(Flight flight: incomingFlights){
-            if(flight.getFlightDate().equals(date)){
-                totalPassengers+= flight.getMaxCapacity();
-            }
-        }
-    return totalPassengers;
+        List<Flight> flights = airportFlightHashMap.getOrDefault(airport, Collections.emptyList());
+        List<Flight> incomingFlights = incomingFlightHashMap.getOrDefault(airport, Collections.emptyList());
+
+        // Combine the flights and incoming flights streams and filter for flights on a specific date
+        int totalPassengers = Stream.concat(flights.stream(), incomingFlights.stream())
+                .filter(f -> f.getFlightDate().equals(date))
+                // Map each flight to its maximum capacity and convert to an int stream
+                .mapToInt(Flight::getMaxCapacity)
+                // Sum up all the maximum capacities to get the total passengers
+                .sum();
+
+        return totalPassengers;
     }
     public int calculateFlightFare(int flightId){
         int noOfPeopleWhoHaveAlreadyBooked = bookedPassengers.get(flightId).size();
@@ -124,17 +121,10 @@ public class AirportRepository {
     }
 
     public int countOfBookingsDoneByPassengerAllCombined(int passengerId){
-        int count = 0;
-        //i will first iterate each entry in the flight hashmap
-        for (Map.Entry<Integer, Flight> entry : flightHashMap.entrySet()){
-            //now i have every entry int flightHashMap from which i can get flightId by getkey() method
-            //using which we can get the list of passengers from bookedPassengers hashmap
-            List<Integer>passengers = bookedPassengers.get(entry.getKey());
-            if (passengers != null && passengers.contains(passengerId)) {
-                count++;
-            }
-        }
-        return count;
+        return (int) bookedPassengers.values()
+                .stream()
+                .filter(passengers -> passengers.contains(passengerId))
+                .count();
     }
     public String addFlight(Flight flight){
         //we need to consider following points while adding flights
