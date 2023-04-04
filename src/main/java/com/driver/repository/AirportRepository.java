@@ -7,8 +7,6 @@ import com.driver.model.Passenger;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 @Repository
@@ -76,30 +74,25 @@ public class AirportRepository {
         int noOfPeopleWhoHaveAlreadyBooked = bookedPassengers.get(flightId).size();
         return 3000 + noOfPeopleWhoHaveAlreadyBooked * 50;
     }
-    public String bookATicket(int flightId, int passengerId) {
-        List<Integer> passengerList = null;
-        try {
-            Flight flight = flightHashMap.get(flightId);
-            if (flight == null) {
-                return "FAILURE";
-            }
-            passengerList = bookedPassengers.computeIfAbsent(flightId, k -> new ArrayList<>());
-            for (Integer passenger : passengerList) {
-                if (passenger == passengerId) {
-                    return "FAILURE";
-                }
-            }
-
-            if (passengerList.size() >= flight.getMaxCapacity()) {
+    public String bookATicket(int flightId, int passengerId){
+        Flight flight = flightHashMap.get(flightId);
+        if (flight == null) {
+            return "FAILURE";
+        }
+        List<Integer> passengerList = bookedPassengers.computeIfAbsent(flightId, k -> new ArrayList<>());
+        for(Integer passenger: passengerList){
+            if (passenger == passengerId) {
                 return "FAILURE";
             }
         }
-        catch (NullPointerException e) {
-            Logger.getLogger(AirportRepository.class.getName()).log(Level.SEVERE, "An error occurred", e);
+
+        if (passengerList.size() >= flight.getMaxCapacity()) {
+            return "FAILURE";
         }
 
         passengerList.add(passengerId);
 
+        bookedPassengers.put(flightId,passengerList);
         return "SUCCESS";
     }
     public String cancelATicket(int flightId, int passengerId){
