@@ -22,12 +22,10 @@ public class AirportController {
     private AirportService airportService;
     @PostMapping("/add_airport")
     public String addAirport(@RequestBody Airport airport){
-        airportService.addAirport(airport);
+        return airportService.addAirport(airport);
 
         //Simply add airport details to your database
         //Return a String message "SUCCESS"
-
-        return "SUCCESS";
     }
 
     @GetMapping("/get-largest-aiport")

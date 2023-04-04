@@ -15,9 +15,9 @@ import java.util.Date;
 public class AirportService {
     @Autowired
     private AirportRepository airportRepository;
-    public void addAirport(Airport airport){
+    public String addAirport(Airport airport){
 
-        airportRepository.addAirport(airport);
+        return airportRepository.addAirport(airport);
     }
     public String getLargestAirportName(){
 

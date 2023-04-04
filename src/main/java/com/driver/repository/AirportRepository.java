@@ -7,6 +7,8 @@ import com.driver.model.Passenger;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 @Repository
@@ -25,9 +27,12 @@ public class AirportRepository {
     //db to keep track of the cancelled tickets. it has flightid,list<passengerid>
     HashMap<Integer, Passenger>passengerHashMap = new HashMap<>();
 
-    public void addAirport(Airport airport){
-
+    public String addAirport(Airport airport) {
+        if (airport == null || airportHashMap.containsKey(airport.getAirportName())) {
+            return "FAILURE";
+        }
         airportHashMap.put(airport.getAirportName(), airport);
+        return "SUCCESS";
     }
     public String getLargestAirportName(){
         Airport largestAirport = null;
@@ -71,26 +76,26 @@ public class AirportRepository {
         int noOfPeopleWhoHaveAlreadyBooked = bookedPassengers.get(flightId).size();
         return 3000 + noOfPeopleWhoHaveAlreadyBooked * 50;
     }
-    public String bookATicket(int flightId, int passengerId){
-        Flight flight = flightHashMap.get(flightId);
-        if (flight == null) {
-            return "FAILURE";
-        }
-        List<Integer>passengerList = bookedPassengers.get(flightId);
-        if(passengerList!=null){
-            for(Integer passenger: passengerList){
+    public String bookATicket(int flightId, int passengerId) {
+        List<Integer> passengerList = null;
+        try {
+            Flight flight = flightHashMap.get(flightId);
+            if (flight == null) {
+                return "FAILURE";
+            }
+            passengerList = bookedPassengers.computeIfAbsent(flightId, k -> new ArrayList<>());
+            for (Integer passenger : passengerList) {
                 if (passenger == passengerId) {
                     return "FAILURE";
                 }
             }
-        }
-        else{
-            passengerList = new ArrayList<>();
-            bookedPassengers.put(flightId, passengerList);
-        }
 
-        if (passengerList.size() >= flight.getMaxCapacity()) {
-            return "FAILURE";
+            if (passengerList.size() >= flight.getMaxCapacity()) {
+                return "FAILURE";
+            }
+        }
+        catch (Exception e) {
+            Logger.getLogger(AirportRepository.class.getName()).log(Level.SEVERE, "An error occurred", e);
         }
 
         passengerList.add(passengerId);
@@ -167,7 +172,17 @@ public class AirportRepository {
             return null;
         }
 
-        Airport airport = airportHashMap.get(flight.getFromCity().name());
+        City fromCity = flight.getFromCity();
+        if (fromCity == null) {
+            return null;
+        }
+
+        String cityName = fromCity.name();
+        if (cityName == null) {
+            return null;
+        }
+
+        Airport airport = airportHashMap.get(cityName);
         if (airport == null) {
             return null;
         }
@@ -198,7 +213,7 @@ public class AirportRepository {
         return revenue;
     }
     public String addPassenger(Passenger passenger){
-        if (passengerHashMap.containsValue(passenger)) {
+        if (passenger==null || passengerHashMap.containsValue(passenger)) {
             return "FAILURE";
         }
         passengerHashMap.put(passenger.getPassengerId(), passenger);
