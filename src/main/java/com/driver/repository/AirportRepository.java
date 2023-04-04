@@ -94,7 +94,7 @@ public class AirportRepository {
                 return "FAILURE";
             }
         }
-        catch (Exception e) {
+        catch (NullPointerException e) {
             Logger.getLogger(AirportRepository.class.getName()).log(Level.SEVERE, "An error occurred", e);
         }
 
