@@ -71,10 +71,8 @@ public class AirportRepository {
     return totalPassengers;
     }
     public int calculateFlightFare(int flightId){
-        Flight flight = flightHashMap.get(flightId);
-        int noOfPeopleWhoHaveAlreadyBooked = bookedPassengers.size();
-        int fare = 3000 + noOfPeopleWhoHaveAlreadyBooked * 50;
-        return fare;
+        int noOfPeopleWhoHaveAlreadyBooked = bookedPassengers.get(flightId).size();
+        return 3000 + noOfPeopleWhoHaveAlreadyBooked * 50;
     }
     public String bookATicket(int flightId, int passengerId){
         Flight flight = flightHashMap.get(flightId);
@@ -161,30 +159,19 @@ public class AirportRepository {
         flightHashMap.put(flight.getFlightId(), flight);
 
         //now add flight to all the lists of flights and update the hashmap
-        List<Flight> fromAirportFlights = airportFlightHashMap.get(fromAirport);
-        if (fromAirportFlights == null) {
-            fromAirportFlights = new ArrayList<>();
-            airportFlightHashMap.put(fromAirport, fromAirportFlights);
-        }
+        List<Flight> fromAirportFlights = airportFlightHashMap.computeIfAbsent(fromAirport, k -> new ArrayList<>());
         fromAirportFlights.add(flight);
 
-        List<Flight> toAirportFlights = airportFlightHashMap.get(toAirport);
-        if (toAirportFlights == null) {
-            toAirportFlights = new ArrayList<>();
-            airportFlightHashMap.put(toAirport, toAirportFlights);
-        }
+        List<Flight> toAirportFlights = airportFlightHashMap.computeIfAbsent(toAirport, k -> new ArrayList<>());
         toAirportFlights.add(flight);
 
-        List<Flight> incomingFlights = incomingFlightHashMap.get(toAirport);
-        if (incomingFlights == null) {
-            incomingFlights = new ArrayList<>();
-            incomingFlightHashMap.put(toAirport, incomingFlights);
-        }
+        List<Flight> incomingFlights = incomingFlightHashMap.computeIfAbsent(toAirport, k -> new ArrayList<>());
         incomingFlights.add(flight);
 
         return "SUCCESS";
     }
     public String getAirportNameFromFlightId(int flightId){
+
         Flight flight = flightHashMap.get(flightId);
         if (flight == null) {
             return null;
